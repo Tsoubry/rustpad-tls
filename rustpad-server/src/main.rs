@@ -1,10 +1,14 @@
-use rustpad_server::{server, database::Database, ServerConfig};
+use rustpad_server::{database::Database, server, ServerConfig};
 use std::net::IpAddr;
 
 #[tokio::main]
 async fn main() {
     dotenv::dotenv().ok();
     pretty_env_logger::init();
+
+    let certificate_path =
+        std::env::var("TLS_CERT_PATH").expect("Wasn't able to parse TLS_CERT_PATH");
+    let key_path = std::env::var("TLS_KEY_PATH").expect("Wasn't able to parse TLS_KEY_PATH");
 
     let port = std::env::var("PORT")
         .unwrap_or_else(|_| String::from("3030"))
@@ -28,5 +32,10 @@ async fn main() {
         },
     };
 
-    warp::serve(server(config)).run((addr, port)).await;
+    warp::serve(server(config))
+        .tls()
+        .cert_path(&certificate_path)
+        .key_path(&key_path)
+        .run((addr, port))
+        .await;
 }
