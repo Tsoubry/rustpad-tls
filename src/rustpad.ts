@@ -1,20 +1,20 @@
-import { OpSeq } from "rustpad-wasm";
+import debounce from "lodash.debounce";
 import type {
-  editor,
   IDisposable,
   IPosition,
+  editor,
 } from "monaco-editor/esm/vs/editor/editor.api";
-import debounce from "lodash.debounce";
+import { OpSeq } from "rustpad-wasm";
 
 /** Options passed in to the Rustpad constructor. */
 export type RustpadOptions = {
   readonly uri: string;
   readonly editor: editor.IStandaloneCodeEditor;
-  readonly onConnected?: () => unknown;
-  readonly onDisconnected?: () => unknown;
-  readonly onDesynchronized?: () => unknown;
-  readonly onChangeLanguage?: (language: string) => unknown;
-  readonly onChangeUsers?: (users: Record<number, UserInfo>) => unknown;
+  readonly onConnected?: () => void;
+  readonly onDisconnected?: () => void;
+  readonly onDesynchronized?: () => void;
+  readonly onChangeLanguage?: (language: string) => void;
+  readonly onChangeUsers?: (users: Record<number, UserInfo>) => void;
   readonly reconnectInterval?: number;
 };
 
@@ -55,7 +55,7 @@ class Rustpad {
   constructor(readonly options: RustpadOptions) {
     this.model = options.editor.getModel()!;
     this.onChangeHandle = options.editor.onDidChangeModelContent((e) =>
-      this.onChange(e)
+      this.onChange(e),
     );
     const cursorUpdate = debounce(() => this.sendCursorData(), 20);
     this.onCursorHandle = options.editor.onDidChangeCursorPosition((e) => {
@@ -81,7 +81,7 @@ class Rustpad {
     this.tryConnectId = window.setInterval(() => this.tryConnect(), interval);
     this.resetFailuresId = window.setInterval(
       () => (this.recentFailures = 0),
-      15 * interval
+      15 * interval,
     );
   }
 
@@ -281,7 +281,7 @@ class Rustpad {
               forceMoveMarkers: true,
             },
           ],
-          () => null
+          () => null,
         );
       } else if (op >= 0) {
         // Retain
@@ -305,7 +305,7 @@ class Rustpad {
               forceMoveMarkers: true,
             },
           ],
-          () => null
+          () => null,
         );
       }
     }
@@ -376,7 +376,7 @@ class Rustpad {
 
     this.oldDecorations = this.model.deltaDecorations(
       this.oldDecorations,
-      decorations
+      decorations,
     );
   }
 
@@ -396,7 +396,7 @@ class Rustpad {
         const { text, rangeOffset, rangeLength } = change;
         const initialLength = unicodeLength(content.slice(0, rangeOffset));
         const deletedLength = unicodeLength(
-          content.slice(rangeOffset, rangeOffset + rangeLength)
+          content.slice(rangeOffset, rangeOffset + rangeLength),
         );
         const restLength =
           contentLength + offset - initialLength - deletedLength;
