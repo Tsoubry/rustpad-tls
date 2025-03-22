@@ -1,18 +1,18 @@
-FROM rust:alpine AS backend
+FROM docker.io/rust:alpine AS backend
 WORKDIR /home/rust/src
 RUN apk --no-cache add musl-dev openssl-dev
 COPY . .
 RUN cargo test --release
 RUN cargo build --release
 
-FROM --platform=amd64 rust:alpine AS wasm
+FROM --platform=amd64 docker.io/rust:alpine AS wasm
 WORKDIR /home/rust/src
 RUN apk --no-cache add curl musl-dev
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 COPY . .
 RUN wasm-pack build rustpad-wasm
 
-FROM --platform=amd64 node:lts-alpine AS frontend
+FROM --platform=amd64 docker.io/node:alpine3.19 AS frontend
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 COPY --from=wasm /home/rust/src/rustpad-wasm/pkg rustpad-wasm/pkg
