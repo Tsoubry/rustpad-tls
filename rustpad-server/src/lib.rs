@@ -217,7 +217,7 @@ async fn persister(id: String, rustpad: Arc<Rustpad>, db: Database) {
     let mut last_revision = 0;
     while !rustpad.killed() {
         let interval = PERSIST_INTERVAL
-            + rand::thread_rng().gen_range(Duration::ZERO..=PERSIST_INTERVAL_JITTER);
+            + rand::rng().random_range(Duration::ZERO..=PERSIST_INTERVAL_JITTER);
         time::sleep(interval).await;
         let revision = rustpad.revision();
         if revision > last_revision {
